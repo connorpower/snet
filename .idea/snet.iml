@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module type="CPP_MODULE" version="4">
+  <component name="NewModuleRootManager">
+    <content url="file://$MODULE_DIR$">
+      <sourceFolder url="file://$MODULE_DIR$/snet4/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/snet/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/snet6/src" isTestSource="false" />
+      <excludeFolder url="file://$MODULE_DIR$/snet4/target" />
+      <excludeFolder url="file://$MODULE_DIR$/snet/target" />
+      <excludeFolder url="file://$MODULE_DIR$/target" />
+    </content>
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="sourceFolder" forTests="false" />
+  </component>
+</module>

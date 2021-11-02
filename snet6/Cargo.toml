@@ -1,0 +1,9 @@
+cargo-features = ["edition2021"]
+
+[package]
+name = "snet6"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+snet = { path = "../snet" }
