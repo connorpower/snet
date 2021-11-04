@@ -1,13 +1,4 @@
-pub fn greet(name: &str) {
-    println!("Hello, {}!", name);
-}
+pub mod errors;
+pub mod ipv4;
 
-#[cfg(test)]
-mod test {
-
-    #[test]
-    fn test_foo() {
-        assert_eq!(1 + 2, 3);
-    }
-
-}
+pub use errors::*;

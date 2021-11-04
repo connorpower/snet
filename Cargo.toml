@@ -1,10 +1,7 @@
-cargo-features = ["edition2021"]
-
 [workspace]
 members = [
     "snet",
     "snet4",
-    "snet6",
 ]
 
 resolver = "2"
