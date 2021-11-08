@@ -7,7 +7,7 @@ use ::std::{
 use ::strum::{Display, EnumCount};
 
 #[derive(Debug, Clone, Copy, PartialEq, Display, EnumCount)]
-enum Class {
+pub enum Class {
     /// N, H, H, H
     #[strum(serialize = "class A network")]
     A,
@@ -116,7 +116,7 @@ impl ReservedAddress {
 }
 
 #[derive(Clone, Copy, PartialEq)]
-struct Address(u32);
+pub struct Address(u32);
 
 impl Debug for Address {
     fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
@@ -153,7 +153,7 @@ impl Binary for Address {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
-enum AddressType {
+pub enum AddressType {
     Network(Address, Class),
     Subnet(Address),
     Host(Address),
@@ -188,7 +188,7 @@ impl Display for AddressType {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
-struct Network {
+pub struct Network {
     /// The base network address.
     address: u32,
 
@@ -273,17 +273,17 @@ impl Network {
         })
     }
 
-    fn class(&self) -> Class {
+    pub fn class(&self) -> Class {
         Class::from(self.address)
     }
 
-    fn net_mask(&self) -> Option<u32> {
+    pub fn net_mask(&self) -> Option<u32> {
         self.class()
             .network_bits()
             .map(|network_len| !0x0 << (32 - network_len))
     }
 
-    fn subnet_mask(&self) -> u32 {
+    pub fn subnet_mask(&self) -> u32 {
         if self.subnet_mask_len == 0 {
             0x0
         } else {
@@ -291,7 +291,7 @@ impl Network {
         }
     }
 
-    fn num_subnets(&self) -> Option<u32> {
+    pub fn num_subnets(&self) -> Option<u32> {
         let net_mask = match self.net_mask() {
             Some(n) => n,
             None => return None,
@@ -305,7 +305,7 @@ impl Network {
         })
     }
 
-    fn num_hosts_per_subnet(&self) -> u32 {
+    pub fn num_hosts_per_subnet(&self) -> u32 {
         if self.subnet_mask_len > 30 {
             0
         } else if self.subnet_mask_len == 0 {
@@ -315,7 +315,7 @@ impl Network {
         }
     }
 
-    fn subnets(&self) -> impl Iterator<Item = Address> {
+    pub fn subnets(&self) -> impl Iterator<Item = Address> {
         let network_address = self.address;
         let n_subnets = self.num_subnets().unwrap_or(0);
         let shift = 32 - self.subnet_mask_len;
@@ -323,7 +323,7 @@ impl Network {
         (1..=n_subnets).map(move |i| Address(network_address | (i << shift)))
     }
 
-    fn addresses(&self) -> impl Iterator<Item = AddressType> {
+    pub fn addresses(&self) -> impl Iterator<Item = AddressType> {
         let network_address = self.address;
         let subnet_mask = self.subnet_mask();
         let class = self.class();
