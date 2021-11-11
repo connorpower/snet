@@ -320,18 +320,25 @@ impl Network {
         (1..=n_subnets).map(move |i| Address(network_address | (i << shift)))
     }
 
-    pub fn addresses(&self) -> impl Iterator<Item = AddressType> {
-        let network_address = self.address;
-        let subnet_mask = self.subnet_mask();
+    pub fn addresses(&self) -> Box<dyn Iterator<Item = AddressType>> {
+        let net_address = self.address;
         let class = self.class();
-        let net_mask = self.net_mask().unwrap(); // TODO: handle class D & E
-        let network_broadcast = network_address | !net_mask;
+        let net_iter = once(AddressType::Network(Address(net_address), class));
+
+        let subnet_mask = self.subnet_mask();
+        let net_mask = match self.net_mask() {
+            Some(m) => m,
+            None => return Box::new(net_iter),
+        };
 
         // Total number of host and subnet addresses
-        let n_addresses = !net_mask - (2 * !subnet_mask);
+        let num_addresses = !net_mask - (2 * !subnet_mask);
+        let net_broadcast_iter = once(AddressType::NetworkBroadcast(Address(
+            net_address | !net_mask,
+        )));
 
-        let hosts = (1..n_addresses).map(move |i| {
-            let address = Address(network_address + !subnet_mask + i);
+        let hosts = (1..num_addresses).map(move |i| {
+            let address = Address(net_address + !subnet_mask + i);
 
             if address.0 | subnet_mask == !0x0 {
                 AddressType::SubnetBroadcast(address)
@@ -342,11 +349,7 @@ impl Network {
             }
         });
 
-        once(AddressType::Network(Address(network_address), class))
-            .chain(hosts)
-            .chain(once(AddressType::NetworkBroadcast(Address(
-                network_broadcast,
-            ))))
+        Box::new(net_iter.chain(hosts).chain(net_broadcast_iter))
     }
 }
 
@@ -376,6 +379,7 @@ mod test {
             (Class::A, "125.0.0.0/0"),
             (Class::B, "128.122.0.0/0"),
             (Class::C, "192.168.147.0/0"),
+            (Class::D, "224.12.98.255/0"),
             (Class::E, "255.255.255.254/32"),
         ] {
             assert_eq!(
@@ -459,9 +463,7 @@ mod test {
     fn test_network_display() {
         let network = Network::from_dotted_decimal_parts(192, 168, 147, 0, 28).unwrap();
         assert_eq!(
-            "192.168.147.0/28\n\
-            \n\
-            class C network\n\
+            "class C network\n\
             Subnets:      14\n\
             Hosts/subnet: 14",
             &network.to_string()
@@ -495,7 +497,7 @@ mod test {
     }
 
     #[test]
-    fn test_addresses_iter() {
+    fn test_addresses_iter_class_c() {
         let network = Network::try_from("192.168.147.0/28").unwrap();
         let addresses: Vec<String> = network.addresses().map(|a| a.to_string()).collect();
 
@@ -509,5 +511,14 @@ mod test {
         // ...
         assert_eq!(&addresses[224], "subnet broadcast");
         assert_eq!(&addresses[225], "network broadcast");
+    }
+
+    #[test]
+    fn test_addresses_iter_class_d() {
+        let network = Network::try_from("224.12.98.255/28").unwrap();
+        let addresses: Vec<String> = network.addresses().map(|a| a.to_string()).collect();
+
+        assert_eq!(&addresses[0], "class D network");
+        assert_eq!(addresses.len(), 1);
     }
 }
