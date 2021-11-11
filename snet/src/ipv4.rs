@@ -162,7 +162,7 @@ pub enum AddressType {
 }
 
 impl AddressType {
-    const fn address(&self) -> Address {
+    pub const fn address(&self) -> Address {
         match self {
             Self::Network(a, _)
             | Self::Subnet(a)
@@ -175,14 +175,12 @@ impl AddressType {
 
 impl Display for AddressType {
     fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
-        write!(f, "{:?}", self.address())?;
-
         match self {
-            Self::Network(_, c) => write!(f, " ({})", c),
-            Self::Subnet(_) => write!(f, " (subnet)"),
-            Self::Host(_) => Ok(()),
-            Self::SubnetBroadcast(_) => write!(f, " (subnet broadcast)"),
-            Self::NetworkBroadcast(_) => write!(f, " (network broadcast)"),
+            Self::Network(_, c) => write!(f, "{}", c),
+            Self::Subnet(_) => write!(f, "subnet"),
+            Self::Host(_) => write!(f, "host"),
+            Self::SubnetBroadcast(_) => write!(f, "subnet broadcast"),
+            Self::NetworkBroadcast(_) => write!(f, "network broadcast"),
         }
     }
 }
@@ -220,7 +218,6 @@ impl Display for Network {
 impl TryFrom<&str> for Network {
     type Error = Error;
 
-    // TODO: rewrite with nom
     fn try_from(value: &str) -> Result<Self> {
         let (octals, mask) = {
             let mut parts = value.split('/');
@@ -502,42 +499,15 @@ mod test {
         let network = Network::try_from("192.168.147.0/28").unwrap();
         let addresses: Vec<String> = network.addresses().map(|a| a.to_string()).collect();
 
-        assert_eq!(
-            &addresses[0],
-            "11000000101010001001001100000000 - 192.168.147.0 (class C network)"
-        );
-        assert_eq!(
-            &addresses[1],
-            "11000000101010001001001100010000 - 192.168.147.16 (subnet)"
-        );
-        assert_eq!(
-            &addresses[2],
-            "11000000101010001001001100010001 - 192.168.147.17"
-        );
-        assert_eq!(
-            &addresses[15],
-            "11000000101010001001001100011110 - 192.168.147.30"
-        );
-        assert_eq!(
-            &addresses[16],
-            "11000000101010001001001100011111 - 192.168.147.31 (subnet broadcast)"
-        );
-        assert_eq!(
-            &addresses[17],
-            "11000000101010001001001100100000 - 192.168.147.32 (subnet)"
-        );
-        assert_eq!(
-            &addresses[18],
-            "11000000101010001001001100100001 - 192.168.147.33"
-        );
+        assert_eq!(&addresses[0], "class C network");
+        assert_eq!(&addresses[1], "subnet");
+        assert_eq!(&addresses[2], "host");
+        assert_eq!(&addresses[15], "host");
+        assert_eq!(&addresses[16], "subnet broadcast");
+        assert_eq!(&addresses[17], "subnet");
+        assert_eq!(&addresses[18], "host");
         // ...
-        assert_eq!(
-            &addresses[224],
-            "11000000101010001001001111101111 - 192.168.147.239 (subnet broadcast)"
-        );
-        assert_eq!(
-            &addresses[225],
-            "11000000101010001001001111111111 - 192.168.147.255 (network broadcast)"
-        );
+        assert_eq!(&addresses[224], "subnet broadcast");
+        assert_eq!(&addresses[225], "network broadcast");
     }
 }

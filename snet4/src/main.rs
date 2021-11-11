@@ -5,6 +5,8 @@ use ::std::convert::TryFrom;
 
 const ARG_NAME_LIST_SNETS: &str = "list-snets";
 const ARG_NAME_LIST_ALL: &str = "list-all";
+const ARG_NAME_FMT_BINARY: &str = "binary";
+const ARG_NAME_FMT_DECIMAL: &str = "decimal";
 
 fn main() {
     let matches = App::new("snet4")
@@ -20,6 +22,20 @@ fn main() {
             When invoked without arguments, snet4 will determine the class of the
             network, number of subnets and hosts per subnet.
         "})
+        .arg(
+            Arg::with_name(ARG_NAME_FMT_BINARY)
+                .short("b")
+                .long(ARG_NAME_FMT_BINARY)
+                .required(false)
+                .help("Format output addresses in binary"),
+        )
+        .arg(
+            Arg::with_name(ARG_NAME_FMT_DECIMAL)
+                .short("d")
+                .long(ARG_NAME_FMT_DECIMAL)
+                .required(false)
+                .help("Format output addresses in dotted decimal"),
+        )
         .arg(
             Arg::with_name(ARG_NAME_LIST_SNETS)
                 .short("s")
@@ -54,15 +70,44 @@ fn main() {
         Ok(network) => network,
     };
 
+    let fmt_binary = matches.is_present(ARG_NAME_FMT_BINARY);
+    let fmt_decimal = matches.is_present(ARG_NAME_FMT_DECIMAL);
+
     if matches.is_present(ARG_NAME_LIST_SNETS) {
-        for address in network.subnets() {
-            println!("{}", address);
-        }
+        list_subnets(&network, fmt_binary, fmt_decimal);
     } else if matches.is_present(ARG_NAME_LIST_ALL) {
-        for address in network.addresses() {
-            println!("{}", address);
-        }
+        list_all(&network, fmt_binary, fmt_decimal);
     } else {
         println!("{}", network);
+    }
+}
+
+fn list_subnets(network: &Network, fmt_binary: bool, fmt_decimal: bool) {
+    for address in network.subnets() {
+        if fmt_binary {
+            print!("{:b}", address);
+        }
+        if fmt_binary && fmt_decimal {
+            print!(" - ")
+        }
+        if fmt_decimal || !fmt_binary {
+            print!("{}", address);
+        }
+        println!();
+    }
+}
+
+fn list_all(network: &Network, fmt_binary: bool, fmt_decimal: bool) {
+    for address_type in network.addresses() {
+        if fmt_binary {
+            print!("{:b}", address_type.address());
+        }
+        if fmt_binary && fmt_decimal {
+            print!(" - ")
+        }
+        if fmt_decimal || !fmt_binary {
+            print!("{}", address_type.address());
+        }
+        println!(" ({})", address_type);
     }
 }
