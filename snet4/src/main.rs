@@ -10,7 +10,6 @@ const ARG_NAME_FMT_DECIMAL: &str = "decimal";
 
 fn main() {
     let matches = App::new("snet4")
-        .version("1.0")
         .about(indoc! {"
             snet4 provides subnet information about an IPv4 network, and optionally
             lists all hosts, subnet addresses and broadcast addresses.

@@ -197,13 +197,9 @@ pub struct Network {
 impl Display for Network {
     fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
         f.write_fmt(format_args!(
-            "{}/{}\n\
-            \n\
-            {}\n\
+            "{}\n\
             Subnets:      {}\n\
             Hosts/subnet: {}",
-            Address(self.address),
-            self.subnet_mask_len,
             self.class(),
             self.num_subnets()
                 .map(|n| n.to_string())
